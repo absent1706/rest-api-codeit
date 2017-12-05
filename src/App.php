@@ -55,7 +55,6 @@ class App
                     if (is_string($response)) {
                         $response = [
                             'code' => 200,
-                            'headers' => [],
                             'body' => $response
                         ];
                     }
@@ -63,7 +62,6 @@ class App
                 } catch (ModelNotFoundException $e) {
                     return [
                         'code' => 404, 
-                        'headers' => [], 
                         'body' => 'not found'
                     ];
                 }
@@ -72,7 +70,6 @@ class App
 
         return [
             'code' => 404,
-            'headers' => [],
             'body' => 'not found'
         ];
     }
