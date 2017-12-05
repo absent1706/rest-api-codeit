@@ -4,6 +4,7 @@ namespace App;
 
 use ArrayAccess;
 use Illuminate\Database\Capsule\Manager as Capsule;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class App
 {
@@ -48,16 +49,24 @@ class App
 
             if ($matches && ($request['method'] == $method)) {
                 $args = array_merge([$request], array_slice($matches, 1));
-                $response = call_user_func_array($handler, $args);
-
-                if (is_string($response)) {
-                    $response = [
-                        'code' => 200,
-                        'headers' => [],
-                        'body' => $response
+                try {
+                    $response = call_user_func_array($handler, $args);
+    
+                    if (is_string($response)) {
+                        $response = [
+                            'code' => 200,
+                            'headers' => [],
+                            'body' => $response
+                        ];
+                    }
+                    return $response;
+                } catch (ModelNotFoundException $e) {
+                    return [
+                        'code' => 404, 
+                        'headers' => [], 
+                        'body' => 'not found'
                     ];
                 }
-                return $response;
             }
         }
 

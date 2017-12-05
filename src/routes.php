@@ -2,7 +2,6 @@
 
 use App\App;
 use App\Models\Post;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 return [
     [
@@ -25,15 +24,7 @@ return [
         'method' => 'GET',
         'pattern' => '/posts/(\d+)',
         'handler' => function($request, $id){
-            try {
-                return App::json(Post::findOrFail($id));
-            } catch (ModelNotFoundException $e) {
-                return [
-                    'code' => 404, 
-                    'headers' => [], 
-                    'body' => 'not found'
-                ];
-            }
+            return App::json(Post::findOrFail($id));
         }
     ],
     
@@ -65,17 +56,9 @@ return [
         'method' => 'DELETE',
         'pattern' => "/posts/(\d+)",
         'handler' => function($request, $id){
-            try {
-                $post = Post::findOrFail($id);
-                $post->delete();
-                return "Item #{$id} Was Deleted Successfully";
-            } catch (ModelNotFoundException $e) {
-                return [
-                    'code' => 404, 
-                    'headers' => [], 
-                    'body' => 'not found'
-                ];
-            }
+            $post = Post::findOrFail($id);
+            $post->delete();
+            return "Item #{$id} Was Deleted Successfully";
         }
     ]
 ];
