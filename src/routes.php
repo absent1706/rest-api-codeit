@@ -13,7 +13,7 @@ return [
     ],
     
     [
-        'method' => 'POST',
+        'method' => 'GET',
         'pattern' => '/posts',
         'handler' => function ($request) {
             return App::json(Post::all());
@@ -21,17 +21,16 @@ return [
     ],
     
     [
-        'method' => 'POST',
+        'method' => 'GET',
         'pattern' => '/posts/(\d+)',
         'handler' => function($request, $id){
             return App::json(Post::find($id));
         }
     ],
     
-    // TODO: URL it in rest way
     [
         'method' => 'POST',
-        'pattern' => '/posts/create',
+        'pattern' => '/posts',
         'handler' => function($request){
             $post = Post::create($request['json']);
             return App::json($post);
@@ -54,14 +53,11 @@ return [
     ],
     
     [
-        'method' => 'POST',
-        'pattern' => "/posts/delete",
-        'handler' => function($request){
-            $id = $request['json'];
-            Post::find($id);
-            $result = Post::destroy($request['json']);
-            $msg = 'Item Was Deleted Successfully';
-            return $result.$msg;
+        'method' => 'DELETE',
+        'pattern' => "/posts/(\d+)",
+        'handler' => function($request, $id){
+            Post::destroy($id);
+            return "Item #{$id} Was Deleted Successfully";
         }
     ]
 ];
