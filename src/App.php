@@ -36,13 +36,17 @@ class App
     {
         $routes = require_once __DIR__.'/routes.php';
 
-        foreach ($routes as $pattern => $handler) {
+        foreach ($routes as $route) {
+            $pattern = $route['pattern'];
+            $handler = $route['handler'];
+            $method = $route['method'];
+
             $url_without_params = strtok($request['url'], '?');
             $pattern = '/^' . str_replace('/', '\/', self::url($pattern)) . '$/';
             $matches = [];
             preg_match($pattern, $url_without_params, $matches);
 
-            if ($matches) {
+            if ($matches && ($request['method'] == $method)) {
                 $args = array_merge([$request], array_slice($matches, 1));
                 $response = call_user_func_array($handler, $args);
 

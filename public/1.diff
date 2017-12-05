@@ -1,0 +1,149 @@
+diff --git a/public/index.php b/public/index.php
+index f9da600..b06e8cb 100644
+--- a/public/index.php
++++ b/public/index.php
+@@ -8,6 +8,7 @@ require_once __DIR__.'/../vendor/autoload.php';
+ App\App::init();
+ 
+ $request = [
++    'method' => $_SERVER['REQUEST_METHOD'],
+     'url' => $_SERVER['REQUEST_URI'],
+     'info' => $_SERVER,
+     'params' => $_REQUEST,
+diff --git a/src/App.php b/src/App.php
+index a5fec22..190604d 100644
+--- a/src/App.php
++++ b/src/App.php
+@@ -36,13 +36,25 @@ class App
+     {
+         $routes = require_once __DIR__.'/routes.php';
+ 
+-        foreach ($routes as $pattern => $handler) {
++        foreach ($routes as $route) {
++            $pattern = $route['pattern'];
++            $handler = $route['handler'];
++            $method = $route['method'];
++
+             $url_without_params = strtok($request['url'], '?');
+             $pattern = '/^' . str_replace('/', '\/', self::url($pattern)) . '$/';
+             $matches = [];
+             preg_match($pattern, $url_without_params, $matches);
+ 
+             if ($matches) {
++                if ($request['method'] != $method) {
++                    return [
++                        'code' => 405,
++                        'headers' => [],
++                        'body' => 'HTTP method not allowed'
++                    ];
++                }
++
+                 $args = array_merge([$request], array_slice($matches, 1));
+                 $response = call_user_func_array($handler, $args);
+ 
+diff --git a/src/routes.php b/src/routes.php
+index 68f9c99..acc8838 100644
+--- a/src/routes.php
++++ b/src/routes.php
+@@ -4,42 +4,64 @@ use App\App;
+ use App\Models\Post;
+ 
+ return [
+-
+-    '/' => function($request){
+-        return App::render('main');
+-    },
+-
+-    '/posts' => function ($request) {
+-        return App::json(Post::all());
+-//        return App::render('main');
+-    },
+-
+-    '/posts/(\d+)' => function($request, $id){
+-        return App::json(Post::find($id));
+-    },
+-
++    [
++        'method' => 'POST',
++        'pattern' => '/',
++        'handler' => function($request){
++            return App::render('main');
++        }
++    ],
++    
++    [
++        'method' => 'POST',
++        'pattern' => '/posts',
++        'handler' => function ($request) {
++            return App::json(Post::all());
++        }
++    ],
++    
++    [
++        'method' => 'POST',
++        'pattern' => '/posts/(\d+)',
++        'handler' => function($request, $id){
++            return App::json(Post::find($id));
++        }
++    ],
++    
+     // TODO: URL it in rest way
+-    '/posts/create' => function($request){
+-        $post = Post::create($request['json']);
+-        return App::json($post);
+-    },
++    [
++        'method' => 'POST',
++        'pattern' => '/posts/create',
++        'handler' => function($request){
++            $post = Post::create($request['json']);
++            return App::json($post);
++        }
++    ],
++    
+     //TODO: Create an a form to fill DB columns
+-    '/posts/new' => function(){
+-
+-        $data = [
+-            "title"=>$_GET['title'],
+-            "content"=>$_GET['content'],
+-            "author"=>$_GET['author']
+-        ];
+-        $post = Post::create($data);
+-        return App::json($post);
+-    },
+-
+-    "/posts/delete" => function($request){
+-        $id = $request['json'];
+-        Post::find($id);
+-        $result = Post::destroy($request['json']);
+-        $msg = 'Item Was Deleted Successfully';
+-        return $result.$msg;
+-    }
++    [
++        'method' => 'POST',
++        'pattern' => '/posts/new',
++        'handler' => function(){
++            $data = [
++                "title"=>$_GET['title'],
++                "content"=>$_GET['content'],
++                "author"=>$_GET['author']
++            ];
++            $post = Post::create($data);
++            return App::json($post);
++        }
++    ],
++    
++    [
++        'method' => 'POST',
++        'pattern' => "/posts/delete",
++        'handler' => function($request){
++            $id = $request['json'];
++            Post::find($id);
++            $result = Post::destroy($request['json']);
++            $msg = 'Item Was Deleted Successfully';
++            return $result.$msg;
++        }
++    ]
+ ];
+\ No newline at end of file
