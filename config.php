@@ -8,6 +8,6 @@ return [
         'host' => 'localhost',
         'database' => 'rest-task-db',
         'username' => 'root',
-        'password' => '3452',
+        'password' => '',
     ]
 ];
